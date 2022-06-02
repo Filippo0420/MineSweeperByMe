@@ -6,8 +6,8 @@ from time import sleep
 
 
 class square:
-    rows = 20
-    width = 800
+    rows = 30
+    width = 900
     sizeBtwn = width // rows
     pygame.font.init()
     font = pygame.font.SysFont('Arial', 15)
@@ -51,12 +51,12 @@ class square:
                     self.drawUsed()
             if self.flag:
                 centre = self.sizeBtwn // 2
-                radius = 6
+                radius = 4
                 circleMiddle = (self.pos[0] * self.sizeBtwn + centre, self.pos[1] * self.sizeBtwn + centre)
                 pygame.draw.circle(self.window, (100, 10, 200), circleMiddle, radius)
             elif self.bomb:
                 centre = self.sizeBtwn // 2
-                radius = 6
+                radius = 4
                 circleMiddle = (self.pos[0] * self.sizeBtwn + centre, self.pos[1] * self.sizeBtwn + centre)
                 pygame.draw.circle(self.window, (0, 0, 0), circleMiddle, radius)
                 message_box('You lost!', 'Play Again')
@@ -252,12 +252,28 @@ def reset():
     drawCubes(allCubes, bombs, width, rows, window)
     giveNumbers(allCubes, bombs)
 
+
+def czyWygrana():
+    global allCubes, numOfBombs
+    sumOfUsedCubes = 0
+    for cube in allCubes:
+        if cube.used:
+            sumOfUsedCubes +=1
+    if sumOfUsedCubes == len(allCubes) - numOfBombs:
+        win()
+
+
+def win():
+    message_box('You Win!', 'Congratulations!')
+    reset()
+
+
 def main():
     global width, rows, sizeBtwn, numOfBombs, allCubes, bombs, window
-    width = 800
-    rows = 20
+    width = 900
+    rows = 30
     sizeBtwn = width // rows
-    numOfBombs = 50
+    numOfBombs = 100
     pygame.font.init()
     window = pygame.display.set_mode((width, width))
     window.fill((0, 0, 0))
@@ -279,7 +295,8 @@ def main():
                     allCubes[cubeNum].draw()
                 if allCubes[cubeNum].number == 0:
                     czyPuste(allCubes, cubeNum)
-                allCubes[cubeNum].clicked()
+                allCubes[cubeNum].clicked(flag=False)
+                czyWygrana()
             # right mouse button click
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 3:
                 mouse_position = pygame.mouse.get_pos()
