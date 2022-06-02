@@ -7,12 +7,12 @@ from time import sleep
 
 class square:
     rows = 20
-    width = 500
+    width = 800
     sizeBtwn = width // rows
     pygame.font.init()
     font = pygame.font.SysFont('Arial', 15)
 
-    def __init__(self, position, window, color = (0, 150, 0), used = True):
+    def __init__(self, position, window, color = (0, 150, 0), used = False):
         self.pos = position
         self.window = window
         self.color = color
@@ -33,26 +33,37 @@ class square:
                                               self.sizeBtwn - 2,
                                               self.sizeBtwn - 2))
 
+    def drawUsed(self, color = (51, 102, 0)):
+        self.color = color
+        i = self.pos[0]
+        j = self.pos[1]
+        pygame.draw.rect(self.window, self.color, (i * self.sizeBtwn + 1,
+                                                   j * self.sizeBtwn + 1,
+                                                   self.sizeBtwn - 2,
+                                                   self.sizeBtwn - 2))
+
     def clicked(self, flag = False):
         self.flag = flag
-        if not self.flag:
-            if self.used:
-                self.used = False
-        if self.bomb:
-            centre = self.sizeBtwn // 2
-            radius = 6
-            circleMiddle = (self.pos[0] * self.sizeBtwn + centre, self.pos[1] * self.sizeBtwn + centre)
-            pygame.draw.circle(self.window, (0, 0, 0), circleMiddle, radius)
-            message_box('You lost!', 'Play Again')
-            reset()
-        elif self.flag:
-            centre = self.sizeBtwn // 2
-            radius = 6
-            circleMiddle = (self.pos[0] * self.sizeBtwn + centre, self.pos[1] * self.sizeBtwn + centre)
-            pygame.draw.circle(self.window, (100, 10, 200), circleMiddle, radius)
-        else:
-            text_surface = self.font.render(str(self.number), False, (255, 60, 0))
-            self.window.blit(text_surface, (self.pos[0] * self.sizeBtwn + 5, self.pos[1] * self.sizeBtwn))
+        if not self.used:
+            if not self.flag:
+                if not self.used:
+                    self.used = True
+                    self.drawUsed()
+            if self.flag:
+                centre = self.sizeBtwn // 2
+                radius = 6
+                circleMiddle = (self.pos[0] * self.sizeBtwn + centre, self.pos[1] * self.sizeBtwn + centre)
+                pygame.draw.circle(self.window, (100, 10, 200), circleMiddle, radius)
+            elif self.bomb:
+                centre = self.sizeBtwn // 2
+                radius = 6
+                circleMiddle = (self.pos[0] * self.sizeBtwn + centre, self.pos[1] * self.sizeBtwn + centre)
+                pygame.draw.circle(self.window, (0, 0, 0), circleMiddle, radius)
+                message_box('You lost!', 'Play Again')
+                reset()
+            else:
+                text_surface = self.font.render(str(self.number), False, (255, 60, 0))
+                self.window.blit(text_surface, (self.pos[0] * self.sizeBtwn + 5, self.pos[1] * self.sizeBtwn))
 
 
     def giveNumber(self, number):
@@ -243,7 +254,7 @@ def reset():
 
 def main():
     global width, rows, sizeBtwn, numOfBombs, allCubes, bombs, window
-    width = 500
+    width = 800
     rows = 20
     sizeBtwn = width // rows
     numOfBombs = 50
@@ -273,9 +284,9 @@ def main():
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 3:
                 mouse_position = pygame.mouse.get_pos()
                 cubeNum = getCubeNumFromMousePos(mouse_position)
-                if not allCubes[cubeNum].flag:
+                if not allCubes[cubeNum].flag and not allCubes[cubeNum].used:
                     allCubes[cubeNum].clicked(flag=True)
-                else:
+                elif not allCubes[cubeNum].used:
                     allCubes[cubeNum].draw()
 
         pygame.time.delay(20)
