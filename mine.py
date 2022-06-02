@@ -1,5 +1,7 @@
 import pygame
-import  random
+import random
+import tkinter as tk
+from tkinter import messagebox
 from time import sleep
 
 
@@ -17,11 +19,13 @@ class square:
         self.used = used
         self.number = 0
         self.bomb = False
+        self.flag = False
         # types bomb, null, number
         pass
 
-    def draw(self, bomb = False):
+    def draw(self, bomb = False, flag = False):
         self.bomb = bomb
+        self.flag = flag
         i = self.pos[0]
         j = self.pos[1]
         pygame.draw.rect(self.window, self.color, (i * self.sizeBtwn + 1,
@@ -29,14 +33,23 @@ class square:
                                               self.sizeBtwn - 2,
                                               self.sizeBtwn - 2))
 
-    def clicked(self):
-        if self.used:
-            self.used = False
+    def clicked(self, flag = False):
+        self.flag = flag
+        if not self.flag:
+            if self.used:
+                self.used = False
         if self.bomb:
             centre = self.sizeBtwn // 2
             radius = 6
             circleMiddle = (self.pos[0] * self.sizeBtwn + centre, self.pos[1] * self.sizeBtwn + centre)
             pygame.draw.circle(self.window, (0, 0, 0), circleMiddle, radius)
+            message_box('You lost!', 'Play Again')
+            reset()
+        elif self.flag:
+            centre = self.sizeBtwn // 2
+            radius = 6
+            circleMiddle = (self.pos[0] * self.sizeBtwn + centre, self.pos[1] * self.sizeBtwn + centre)
+            pygame.draw.circle(self.window, (100, 10, 200), circleMiddle, radius)
         else:
             text_surface = self.font.render(str(self.number), False, (255, 60, 0))
             self.window.blit(text_surface, (self.pos[0] * self.sizeBtwn + 5, self.pos[1] * self.sizeBtwn))
@@ -202,20 +215,39 @@ def drawCubes(allCubes, bombs, width, rows, window):
             cube.draw()
     pass
 
+
 def getCubeNumFromMousePos(mousePos):
     global sizeBtwn
     position = (mousePos[0] // sizeBtwn, mousePos[1] // sizeBtwn)
     cubeNum = (position[0] + 1) * rows - (rows - (position[1]))
     return cubeNum
 
+def message_box(subject, content):
+    root = tk.Tk()
+    root.attributes("-topmost", True)
+    root.withdraw()
+    messagebox.showinfo(subject, content)
+    try:
+        root.destroy()
+    except:
+        pass
+
+def reset():
+    global window, numOfBombs, allCubes, bombs
+    window.fill((0, 0, 0))
+    drawBoard(width, rows, window)
+    allCubes = makeCubes(window)
+    bombs = losujBomby(rows, numOfBombs)
+    drawCubes(allCubes, bombs, width, rows, window)
+    giveNumbers(allCubes, bombs)
+
 def main():
-    global width, rows, sizeBtwn
+    global width, rows, sizeBtwn, numOfBombs, allCubes, bombs, window
     width = 500
     rows = 20
     sizeBtwn = width // rows
     numOfBombs = 50
     pygame.font.init()
-    my_font = pygame.font.SysFont('Arial', 15)
     window = pygame.display.set_mode((width, width))
     window.fill((0, 0, 0))
     allCubes = makeCubes(window)
@@ -232,6 +264,8 @@ def main():
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 mouse_position = pygame.mouse.get_pos()
                 cubeNum = getCubeNumFromMousePos(mouse_position)
+                if allCubes[cubeNum].flag:
+                    allCubes[cubeNum].draw()
                 if allCubes[cubeNum].number == 0:
                     czyPuste(allCubes, cubeNum)
                 allCubes[cubeNum].clicked()
@@ -239,6 +273,10 @@ def main():
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 3:
                 mouse_position = pygame.mouse.get_pos()
                 cubeNum = getCubeNumFromMousePos(mouse_position)
+                if not allCubes[cubeNum].flag:
+                    allCubes[cubeNum].clicked(flag=True)
+                else:
+                    allCubes[cubeNum].draw()
 
         pygame.time.delay(20)
         clock.tick(10)
